@@ -13,8 +13,8 @@ frontend_host_url = "http://localhost:4200/"
 project_dir = os.path.dirname(os.path.abspath(__file__))
 app = Flask(__name__)
 
-app.config['SECRET_KEY'] = "ca1e0daa0f36cab0a18639537a23c8e48db2ce92ca6e49d728b001fa4dc72ce8"
-app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///{}".format(os.path.join(project_dir, "test.db"))
+app.config.from_object(os.environ['APP_SETTINGS'])
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
 ma = Marshmallow(app)
@@ -32,27 +32,12 @@ app.config.update(dict(
 mail = Mail(app)
 cors = CORS(app)
 
-
-class User(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    email = db.Column(db.String(64))
-    token = db.Column(db.String(256))
-    click_count = db.Column(db.Integer)
-
-
-class UserSchema(ma.SQLAlchemySchema):
-    class Meta:
-        model = User
-
-    id = ma.auto_field()
-    email = ma.auto_field()
-    token = ma.auto_field()
-    click_count = ma.auto_field()
+from models import UserSchema, Users
 
 
 @app.route('/users', methods=['GET'])
 def users():
-    users = User.query.all()
+    users = Users.query.all()
     user_schema = UserSchema(many=True)
     return jsonify(user_schema.dump(users))
 
@@ -61,11 +46,11 @@ def users():
 def auth():
     if request.method == 'POST':
         user_mail = request.get_json()
-        user = User.query.filter_by(email=user_mail.get('user_email')).first()
+        user = Users.query.filter_by(email=user_mail.get('user_email')).first()
         if user is None:
             email = user_mail.get('user_email')
             token = hashlib.sha256(email.encode())
-            user = User(email=user_mail.get('user_email'), token=token.hexdigest(), click_count=0)
+            user = Users(email=user_mail.get('user_email'), token=token.hexdigest(), click_count=0)
             db.session.add(user)
             db.session.commit()
             magic_link = frontend_host_url + "auth?user_token=" + user.token
@@ -84,7 +69,7 @@ def auth():
     elif request.method == 'GET':
         user_token = request.args.get('user_token')
         if user_token != "":
-            user = User.query.filter_by(token=user_token).first()
+            user = Users.query.filter_by(token=user_token).first()
             if user is not None:
                 user.click_count += 1
                 db.session.commit()
@@ -97,5 +82,4 @@ def auth():
 
 
 if __name__ == "__main__":
-    db.create_all()
-    app.run(threaded=True, port=5000)
+    app.run()
