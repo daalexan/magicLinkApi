@@ -20,5 +20,4 @@ class UserSchema(ma.SQLAlchemySchema):
 
     id = ma.auto_field()
     email = ma.auto_field()
-    token = ma.auto_field()
     click_count = ma.auto_field()
