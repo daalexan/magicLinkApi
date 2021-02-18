@@ -20,7 +20,7 @@ db = SQLAlchemy(app)
 ma = Marshmallow(app)
 
 app.config.update(dict(
-    DEBUG = True,
+    DEBUG = False,
     MAIL_SERVER = 'smtp.gmail.com',
     MAIL_PORT = 465,
     MAIL_USE_TLS = False,
@@ -98,4 +98,4 @@ def auth():
 
 if __name__ == "__main__":
     db.create_all()
-    app.run(threaded=True)
+    app.run()
