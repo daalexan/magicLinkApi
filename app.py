@@ -9,7 +9,7 @@ import hashlib
 import os
 
 
-frontend_host_url = "http://localhost:4200/"
+frontend_host_url = "https://magiclinkview.herokuapp.com/"
 project_dir = os.path.dirname(os.path.abspath(__file__))
 app = Flask(__name__)
 
